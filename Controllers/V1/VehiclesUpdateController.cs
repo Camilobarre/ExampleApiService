@@ -1,18 +1,19 @@
 using ExampleApiService.Data;
 using ExampleApiService.DTOs;
+using ExampleApiService.Repositories;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ExampleApiServices.Controllers.V1.Vehicles;
+namespace ExampleApiService.Controllers.V1.Vehicles;
 
 [ApiController]
 [Route("api/v1/[controller]")]
 public class VehiclesUpdateController : ControllerBase
 {
-    private readonly ApplicationDbContext _context;
+    private readonly IVehicleRepository _vehicleRepository;
 
-    public VehiclesUpdateController(ApplicationDbContext context)
+    public VehiclesUpdateController(IVehicleRepository vehicleRepository)
     {
-        _context = context;
+        _vehicleRepository = vehicleRepository;
     }
 
     [HttpPut("{id}")]
@@ -22,8 +23,14 @@ public class VehiclesUpdateController : ControllerBase
         {
             return BadRequest(ModelState);
         }
+        var checkVehicle = await _vehicleRepository.CheckExistence(id);
+        if (checkVehicle == false)
+        {
+            return NotFound();
+        }
 
-        var vehicle = await _context.Vehicles.FindAsync(id);
+        var vehicle = await _vehicleRepository.GetById(id);
+
         if (vehicle == null)
         {
             return NotFound();
@@ -35,9 +42,7 @@ public class VehiclesUpdateController : ControllerBase
         vehicle.Price = updatedVehicle.Price;
         vehicle.Color = updatedVehicle.Color;
 
-        _context.Vehicles.Update(vehicle);
-        await _context.SaveChangesAsync();
-
+        await _vehicleRepository.Update(vehicle);
         return NoContent();
     }
 }

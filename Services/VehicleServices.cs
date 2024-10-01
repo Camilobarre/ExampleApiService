@@ -73,6 +73,19 @@ public class VehicleServices : IVehicleRepository
         return await _context.Vehicles.FindAsync(id);
     }
 
+    public async Task<IEnumerable<Vehicle>> GetByKeyword(string keyword)
+    {
+        if (string.IsNullOrWhiteSpace(keyword))
+        {
+            return await GetAll();
+        }
+
+        return await _context.Vehicles.Where(
+            v => v.Make.Contains(keyword) || 
+            v.Model.Contains(keyword) || 
+            v.Color.Contains(keyword)).ToListAsync();
+    }
+
     public async Task Update(Vehicle vehicle)
     {
         if (vehicle == null)
