@@ -1,29 +1,58 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using ExampleApiService.Data;
 using ExampleApiService.Models;
 using ExampleApiService.Repositories;
+using Microsoft.EntityFrameworkCore;
 
-namespace ExampleApiService.Services
+namespace ExampleApiService.Services;
+
+public class VehicleServices : IVehicleRepository
 {
-    public class VehicleServices : IVehicleRepository
+    private readonly ApplicationDbContext _context;
+
+    public VehicleServices(ApplicationDbContext context)
     {
-        private readonly ApplicationDbContext _context;
-        public VehicleServices(ApplicationDbContext context)
+        _context = context;
+    }
+
+    public async Task Add(Vehicle vehicle)
+    {
+        if (vehicle == null)
         {
-            _context = context;
+            throw new ArgumentNullException(nameof(vehicle), "El vehículo no puede ser nulo.");
         }
 
-        public Task<IEnumerable<Vehicle>> GetAll()
+        try
         {
-            throw new NotImplementedException();
+            await _context.Vehicles.AddAsync(vehicle); 
+            await _context.SaveChangesAsync();
         }
+        catch (DbUpdateException dbEx)
+        {
+            throw new Exception("Error al agregar el vehículo a la base de datos.", dbEx);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Ocurrió un error inesperado al agregar el vehículo.", ex);
+        }
+    }
 
-        public Task<Vehicle> GetById(int id)
-        {
-            throw new NotImplementedException();
-        }
+    public Task<bool> CheckExistence(int id)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<IEnumerable<Vehicle>> GetAll()
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<Vehicle?> GetById(int id)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task Update(Vehicle student)
+    {
+        throw new NotImplementedException();
     }
 }

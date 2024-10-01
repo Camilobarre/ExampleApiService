@@ -1,112 +1,59 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using ExampleApiService.Data;
 using ExampleApiService.DTOs;
 using ExampleApiService.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
-namespace ExampleApiService.Controllers
+namespace ExampleApiService.Controllers.V1.Vehicles;
+
+[ApiController]
+[Route("api/v1/[controller]")]
+public class VehiclesController : ControllerBase
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class VehiclesController : ControllerBase
+    private readonly ApplicationDbContext _context;
+
+    public VehiclesController(ApplicationDbContext context)
     {
-        private readonly ApplicationDbContext _context;
+        _context = context;
+    }
 
-        [HttpGet]
-        public async Task<IActionResult> GetAll()
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<Vehicle>>> GetAll()
+    {
+        return await _context.Vehicles.ToListAsync();
+    }
+
+    [HttpGet("{id}")]
+    public async Task<ActionResult<Vehicle>> GetById(int id)
+    {
+        var vehicle = await _context.Vehicles.FindAsync(id);
+        if (vehicle == null)
         {
-            var vehicles = await _context.Vehicles.ToListAsync();
+            return NotFound();
+        }
+        return vehicle;
+    }
 
-            if (vehicles.Any() == false)
-            {
-                return NoContent();
-            }
-            return Ok(vehicles);
+    [HttpGet("search/{keyword}")]
+    public async Task<ActionResult<IEnumerable<Vehicle>>> SearchByKeyword(string keyword)
+    {
+        if (string.IsNullOrWhiteSpace(keyword))
+        {
+            return BadRequest("La palabra clave no puede estar vacía.");
         }
 
-        [HttpGet("{id}/exists")]
-        public async Task<IActionResult> GetById(int id)
-        {
-            var vehicle = await _context.Vehicles.FindAsync(id);
+        var vehicles = await _context.Vehicles
+            .Where(v => v.Make.Contains(keyword) ||
+                        v.Model.Contains(keyword) ||
+                        v.Color.Contains(keyword))
+            .ToListAsync();
 
-            if (vehicle == null)
-            {
-                return NotFound();
-            }
-            return Ok(vehicle);
+        if (!vehicles.Any())
+        {
+            return NotFound("No se encontraron vehículos que coincidan con la palabra clave proporcionada.");
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] Vehicle vehicle)
-        {
-            if (id != vehicle.Id)
-            {
-                return BadRequest("El ID del vehículo no coincide.");
-            }
-
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            var existingVehicle = await _context.Vehicles.FindAsync(id);
-            if (existingVehicle == null)
-            {
-                return NotFound();
-            }
-
-            existingVehicle.Make = vehicle.Make;
-            existingVehicle.Model = vehicle.Model;
-            existingVehicle.Year = vehicle.Year;
-            existingVehicle.Price = vehicle.Price;
-            existingVehicle.Color = vehicle.Color;
-
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
-        {
-            var vehicle = await _context.Vehicles.FindAsync(id);
-            if (vehicle == null)
-            {
-                return NotFound();
-            }
-
-            _context.Vehicles.Remove(vehicle);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> Create([FromBody] VehicleDTO inputVehicle)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            var newVehicle = new Vehicle
-            {
-                Make = inputVehicle.Make,
-                Model = inputVehicle.Model,
-                Year = inputVehicle.Year,
-                Price = inputVehicle.Price,
-                Color = inputVehicle.Color
-            };
-
-            _context.Vehicles.Add(newVehicle);
-
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction(nameof(GetById), new { id = newVehicle.Id }, newVehicle);
-        }
+        return Ok(vehicles);
     }
 }

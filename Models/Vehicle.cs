@@ -14,7 +14,7 @@ namespace ExampleApiService.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
         [Column("make")]
-        public required string Make { get; set; }
+        public string Make { get; set; }
         [Column("model")]
         public string Model { get; set; }
         [Column("year")]
@@ -23,5 +23,14 @@ namespace ExampleApiService.Models
         public double Price { get; set; }
         [Column("color")]
         public string Color { get; set; }
+
+        public Vehicle(string make, string model, int year, double price, string color)
+        {
+            Make = make;
+            Model = model;
+            Year = year;
+            Price = price;
+            Color = color;
+        }
     }
 }
