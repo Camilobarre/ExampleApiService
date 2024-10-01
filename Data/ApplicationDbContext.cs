@@ -9,9 +9,9 @@ namespace ExampleApiService.Data
 {
     public class ApplicationDbContext : DbContext
     {
+        public DbSet<Vehicle> Vehicles { get; set; }
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
         }
-        public DbSet<Vehicle> Vehicles { get; set; }
     }
 }

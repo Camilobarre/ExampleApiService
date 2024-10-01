@@ -3,7 +3,7 @@ using ExampleApiService.Models;
 using ExampleApiService.Repositories;
 using Microsoft.EntityFrameworkCore;
 
-namespace ExampleApiServices.Services;
+namespace ExampleApiService.Services;
 
 public class VehicleServices : IVehicleRepository
 {
