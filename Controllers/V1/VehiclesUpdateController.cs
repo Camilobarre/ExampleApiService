@@ -7,6 +7,9 @@ namespace ExampleApiService.Controllers.V1.Vehicles;
 
 [ApiController]
 [Route("api/v1/[controller]")]
+[Route("api/v1/vehicles")]
+[ApiExplorerSettings(GroupName = "v1")]
+[Tags("vehicles")]
 public class VehiclesUpdateController : ControllerBase
 {
     private readonly IVehicleRepository _vehicleRepository;
